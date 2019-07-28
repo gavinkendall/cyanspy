@@ -8,6 +8,10 @@ namespace cyanspy.FileSystem
     {
         public string Name { get; set; }
 
+        public bool IsRoot { get; set; }
+
+        public Directory ParentDirectory { get; set; }
+
         public Dictionary<string, File> Files { get; set; }
 
         public Dictionary<string, Directory> Directories { get; set; }

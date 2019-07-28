@@ -15,14 +15,19 @@ namespace cyanspy
             currentUser = new Network.User() { Name = "cyan" };
             currentServer = new Network.Server() { Name = "admin" };
 
-            currentServer.Directories.Add("sys", new FileSystem.Directory() { Name = "sys" });
-            currentDirectory = currentServer.Directories["sys"];
+            FileSystem.Directory sysDirectory = new FileSystem.Directory() { Name = "sys", IsRoot = true };
 
-            currentServer.Directories["sys"].Files = new Dictionary<string, FileSystem.File>();
-            currentServer.Directories["sys"].Directories = new Dictionary<string, FileSystem.Directory>();
+            currentServer.Directories.Add(sysDirectory.Name, sysDirectory);
+            currentDirectory = sysDirectory;
 
-            currentServer.Directories["sys"].Directories.Add("apps", new FileSystem.Directory() { Name = "apps" });
-            currentServer.Directories["sys"].Directories.Add("users", new FileSystem.Directory() { Name = "users" });
+            currentServer.Directories[sysDirectory.Name].Files = new Dictionary<string, FileSystem.File>();
+            currentServer.Directories[sysDirectory.Name].Directories = new Dictionary<string, FileSystem.Directory>();
+
+            FileSystem.Directory appsDirectory = new FileSystem.Directory() { Name = "apps", IsRoot = false, ParentDirectory = sysDirectory };
+            FileSystem.Directory usersDirectory = new FileSystem.Directory() { Name = "users", IsRoot = false, ParentDirectory = sysDirectory };
+
+            currentServer.Directories[sysDirectory.Name].Directories.Add(appsDirectory.Name, appsDirectory);
+            currentServer.Directories[sysDirectory.Name].Directories.Add(usersDirectory.Name, usersDirectory);
 
             string commandInput = string.Empty;
 
@@ -31,19 +36,28 @@ namespace cyanspy
                 Console.Write("(" + currentServer.Name + ") " + DateTime.Now.ToString("HH:mm:ss") + " " + currentUser.Name + " /" + currentDirectory.Name + "> ");
                 commandInput = Console.ReadLine();
 
-                Regex rgxCommandInput = new Regex(@"(?<Command>[a-z]+) ?(?<Value>[a-z\.]+)?");
+                Regex rgxCommandInput = new Regex(@"(?<Command>[a-zA-Z]+) ?(?<Value>[a-zA-Z\.]+)?");
 
                 string command = rgxCommandInput.Match(commandInput).Groups["Command"].Value;
                 string value = rgxCommandInput.Match(commandInput).Groups["Value"].Value;
 
-                switch(command)
+                switch(command.ToLower())
                 {
                     case Command.ChangeDirectory:
-                        currentDirectory = ChangeDirectory(currentDirectory, new FileSystem.Directory() { Name = value });
+                        FileSystem.Directory directoryChangingTo = ChangeDirectory(currentDirectory, new FileSystem.Directory() { Name = value });
+
+                        if (directoryChangingTo != null)
+                        {
+                            currentDirectory = directoryChangingTo;
+                        }
                         break;
 
                     case Command.MakeDirectory:
-                        MakeDirectory(value);
+                        MakeDirectory(currentDirectory, value);
+                        break;
+
+                    case Command.MakeFile:
+                        MakeFile(currentDirectory, value);
                         break;
 
                     case Command.List:
@@ -55,7 +69,19 @@ namespace cyanspy
                         break;
 
                     case Command.ListFile:
-                        ListFile(value);
+                        ListFile();
+                        break;
+
+                    case Command.Remove:
+                        Remove(value);
+                        break;
+
+                    case Command.RemoveDirectory:
+                        RemoveDirectory(value);
+                        break;
+
+                    case Command.RemoveFile:
+                        RemoveFile(value);
                         break;
                 }
             }
@@ -64,24 +90,17 @@ namespace cyanspy
 
         private static FileSystem.Directory ChangeDirectory(FileSystem.Directory currentDirectory, FileSystem.Directory directoryChangingTo)
         {
-            FileSystem.Directory chosenDirectory = new FileSystem.Directory();
-
             if (directoryChangingTo.Name.Equals(".."))
             {
-                chosenDirectory = currentServer.Directories["sys"];
-            }
-            else
-            {
-                if (currentServer.Directories.TryGetValue(currentDirectory.Name, out currentDirectory))
-                {
-                    if (currentDirectory.Directories.TryGetValue(directoryChangingTo.Name, out directoryChangingTo))
-                    {
-                        chosenDirectory = directoryChangingTo;
-                    }
-                }
+                return currentDirectory.ParentDirectory;
             }
 
-            return chosenDirectory;
+            if (currentDirectory.Directories.TryGetValue(directoryChangingTo.Name, out directoryChangingTo))
+            {
+                return directoryChangingTo;
+            }
+
+            return null;
         }
 
         private static void List()
@@ -92,63 +111,78 @@ namespace cyanspy
 
         private static void ListDirectory()
         {
-            ListDirectory(currentDirectory.Name);
-        }
-
-        private static void ListDirectory(string directoryName)
-        {
-            FileSystem.Directory chosenDirectory;
-
-            if (currentServer.Directories.TryGetValue(directoryName, out chosenDirectory))
+            foreach (FileSystem.Directory directory in currentDirectory.Directories.Values)
             {
-                foreach (FileSystem.Directory directory in chosenDirectory.Directories.Values)
-                {
-                    Console.Write("/" + directory.Name + " ");
-                }
-
-                Console.WriteLine("\n" + chosenDirectory.Directories.Values.Count + " directories");
+                Console.Write("/" + directory.Name + " ");
             }
+
+            Console.WriteLine("\nDirectories: " + currentDirectory.Directories.Values.Count);
         }
 
         private static void ListFile()
         {
-            ListFile(currentDirectory.Name);
+            foreach (FileSystem.File file in currentDirectory.Files.Values)
+            {
+                Console.Write(file.Name + " ");
+            }
+
+            Console.WriteLine("\nFiles: " + currentDirectory.Files.Values.Count);
         }
 
-        private static void ListFile(string directoryName)
+        private static void MakeDirectory(FileSystem.Directory currentDirectory, string newDirectoryName)
         {
-            FileSystem.Directory chosenDirectory;
-            
-            if (currentServer.Directories.TryGetValue(directoryName, out chosenDirectory))
+            if (newDirectoryName.Length > 8)
             {
-                foreach (FileSystem.File file in chosenDirectory.Files.Values)
-                {
-                    Console.Write(file.Name + " ");
-                }
+                newDirectoryName = newDirectoryName.Substring(0, 8);
+            }
 
-                Console.WriteLine("\n" + chosenDirectory.Files.Values.Count + " files");
+            if (!currentDirectory.Directories.ContainsKey(newDirectoryName))
+            {
+                FileSystem.Directory newDirectory = new FileSystem.Directory { Name = newDirectoryName, IsRoot = false, ParentDirectory = currentDirectory };
+
+                currentDirectory.Directories.Add(newDirectory.Name, newDirectory);
+                Console.WriteLine("Directory \"" + newDirectory.Name + "\" created");
             }
         }
 
-        private static void MakeDirectory(string newDirectoryName)
+        private static void MakeFile(FileSystem.Directory currentDirectory, string newFileName)
         {
-            MakeDirectory(currentDirectory, newDirectoryName);
-        }
-
-        private static void MakeDirectory(FileSystem.Directory chosenDirectory, string newDirectoryName)
-        {
-            if (currentServer.Directories.TryGetValue(chosenDirectory.Name, out chosenDirectory))
+            if (newFileName.Length > 8)
             {
-                FileSystem.Directory newDirectory = new FileSystem.Directory { Name = newDirectoryName };
+                newFileName = newFileName.Substring(0, 8);
+            }
 
-                chosenDirectory.Directories.Add(newDirectoryName, newDirectory);
+            if (!currentDirectory.Files.ContainsKey(newFileName))
+            {
+                FileSystem.File newFile = new FileSystem.File { Name = newFileName };
+
+                currentDirectory.Files.Add(newFile.Name, newFile);
+                Console.WriteLine("File \"" + newFile.Name + "\" created");
             }
         }
 
-        //private static void MakeFile(string directoryName, string name)
-        //{
-        //    FileSystem.File newFile = new FileSystem.File { Name = name };
-        //    currentServer.Directories[directoryName].Files.Add(name, newFile);
-        //}
+        private static void Remove(string name)
+        {
+            RemoveDirectory(name);
+            RemoveFile(name);
+        }
+
+        private static void RemoveDirectory(string directoryName)
+        {
+            if (currentDirectory.Directories.ContainsKey(directoryName))
+            {
+                currentDirectory.Directories.Remove(directoryName);
+                Console.WriteLine("Directory \"" + directoryName + "\" removed");
+            }
+        }
+
+        private static void RemoveFile(string fileName)
+        {
+            if (currentDirectory.Files.ContainsKey(fileName))
+            {
+                currentDirectory.Files.Remove(fileName);
+                Console.WriteLine("File \"" + fileName + "\" removed");
+            }
+        }
     }
 }
