@@ -41,7 +41,7 @@ namespace cyanspy
                 string command = rgxCommandInput.Match(commandInput).Groups["Command"].Value;
                 string value = rgxCommandInput.Match(commandInput).Groups["Value"].Value;
 
-                switch(command.ToLower())
+                switch (command.ToLower())
                 {
                     case Command.ChangeDirectory:
                         FileSystem.Directory directoryChangingTo = ChangeDirectory(currentDirectory, new FileSystem.Directory() { Name = value });
@@ -86,6 +86,8 @@ namespace cyanspy
                 }
             }
             while (!commandInput.Equals("exit"));
+
+            Environment.Exit(0);
         }
 
         private static FileSystem.Directory ChangeDirectory(FileSystem.Directory currentDirectory, FileSystem.Directory directoryChangingTo)
