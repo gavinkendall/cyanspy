@@ -6,185 +6,158 @@ namespace cyanspy
 {
     public class Program
     {
-        private static Network.User currentUser;
-        private static Network.Server currentServer;
-        private static FileSystem.Directory currentDirectory;
+        private static int HiringBudget = Cost.InitialHiringBudget;
+
+        private static Dictionary<int, Spy> spyCollection = new Dictionary<int, Spy>();
+        private static Dictionary<string, Location> locationCollection = new Dictionary<string, Location>();
 
         public static void Main()
         {
-            currentUser = new Network.User() { Name = "cyan" };
-            currentServer = new Network.Server() { Name = "admin" };
-
-            FileSystem.Directory sysDirectory = new FileSystem.Directory() { Name = "sys", IsRoot = true };
-
-            currentServer.Directories.Add(sysDirectory.Name, sysDirectory);
-            currentDirectory = sysDirectory;
-
-            currentServer.Directories[sysDirectory.Name].Files = new Dictionary<string, FileSystem.File>();
-            currentServer.Directories[sysDirectory.Name].Directories = new Dictionary<string, FileSystem.Directory>();
-
-            FileSystem.Directory appsDirectory = new FileSystem.Directory() { Name = "apps", IsRoot = false, ParentDirectory = sysDirectory };
-            FileSystem.Directory usersDirectory = new FileSystem.Directory() { Name = "users", IsRoot = false, ParentDirectory = sysDirectory };
-
-            currentServer.Directories[sysDirectory.Name].Directories.Add(appsDirectory.Name, appsDirectory);
-            currentServer.Directories[sysDirectory.Name].Directories.Add(usersDirectory.Name, usersDirectory);
+            locationCollection.Add("Boston", new Location("Boston", new TimeSpan(0, 1, 0)));
+            locationCollection.Add("London", new Location("London", new TimeSpan(0, 2, 0)));
+            locationCollection.Add("Paris", new Location("Paris", new TimeSpan(0, 3, 0)));
+            locationCollection.Add("Tokyo", new Location("Tokyo", new TimeSpan(0, 5, 0)));
 
             string commandInput = string.Empty;
 
             do
             {
-                Console.Write("(" + currentServer.Name + ") " + DateTime.Now.ToString("HH:mm:ss") + " " + currentUser.Name + " /" + currentDirectory.Name + "> ");
+                Console.Write(DateTime.Now.ToString("HH:mm:ss") + " " + HiringBudget + "> ");
                 commandInput = Console.ReadLine();
 
-                Regex rgxCommandInput = new Regex(@"(?<Command>[a-zA-Z]+) ?(?<Value>[a-zA-Z\.]+)?");
+                Regex rgxCommandInput = new Regex(@"(?<Command>[a-z]+) ?(?<Value1>[0-9a-zA-Z]+)? ?(?<Value2>[0-9a-zA-Z]+)?");
 
                 string command = rgxCommandInput.Match(commandInput).Groups["Command"].Value;
-                string value = rgxCommandInput.Match(commandInput).Groups["Value"].Value;
+                string value1 = rgxCommandInput.Match(commandInput).Groups["Value1"].Value;
+                string value2 = rgxCommandInput.Match(commandInput).Groups["Value2"].Value;
 
                 switch (command.ToLower())
                 {
-                    case Command.ChangeDirectory:
-                        FileSystem.Directory directoryChangingTo = ChangeDirectory(currentDirectory, new FileSystem.Directory() { Name = value });
-
-                        if (directoryChangingTo != null)
-                        {
-                            currentDirectory = directoryChangingTo;
-                        }
-                        break;
-
-                    case Command.MakeDirectory:
-                        MakeDirectory(currentDirectory, value);
-                        break;
-
-                    case Command.MakeFile:
-                        MakeFile(currentDirectory, value);
+                    case Command.Help:
+                        Console.WriteLine("Command\t\t\tExplanation");
+                        Console.WriteLine("hire\t\t\tHires a new spy");
+                        Console.WriteLine("list\t\t\tLists hired spies");
+                        Console.WriteLine("travel\t\t\tTravel status of hired spies");
+                        Console.WriteLine("map\t\t\tShows a map of locations");
+                        Console.WriteLine("deploy [spy] [location]\tDeploys a spy to a location");
+                        Console.WriteLine("exit\t\t\tQuits the game\n");
+                        Console.WriteLine("Example Deployment Commands");
+                        Console.WriteLine("deploy 32 Paris\t\tDeploys Spy ID 32 to Paris");
+                        Console.WriteLine("deploy 53 London\tDeploys Spy ID 53 to London");
                         break;
 
                     case Command.List:
-                        List();
+                    case Command.ListShortcut:
+                        Console.WriteLine("ID\tName\t\tCondition");
+
+                        foreach (Spy spy in spyCollection.Values)
+                        {
+                            Console.WriteLine(spy.Id + "\t" + spy.Name + "\t" + spy.Condition + " (" + spy.HP + "%)");
+                        }
                         break;
 
-                    case Command.ListDirectory:
-                        ListDirectory();
+                    case Command.Map:
+                    case Command.MapShortcut:
+                        Console.WriteLine("Location\tFlight Duration");
+
+                        foreach (Location location in locationCollection.Values)
+                        {
+                            Console.WriteLine(location.Name + "\t\t" +
+                                location.FlightDuration.Hours + ":" +
+                                location.FlightDuration.Minutes + ":" +
+                                location.FlightDuration.Seconds);
+                        }
                         break;
 
-                    case Command.ListFile:
-                        ListFile();
+                    case Command.Travel:
+                    case Command.TravelShortcut:
+                        Console.WriteLine("Spy\tDestination\tTravel Status\t\tCondition");
+
+                        foreach (Spy spy in spyCollection.Values)
+                        {
+                            Console.Write(spy.Id +
+                                (spy.Deployed ? "\t" + spy.Destination : string.Empty) + "\t\t");
+
+                            if (spy.Deployed)
+                            {
+                                Console.Write(DateTime.Now >= spy.TravelEndTime ? "Arrived\t\t\t" : "On Route (" +
+                                spy.TravelEndTime.ToString("hh:mm:ss") + " ETA)\t");
+                            }
+                            else
+                            {
+                                Console.Write("\t\t\t\t");
+                            }
+
+                            Console.Write(spy.Condition);
+                            Console.Write(" (" + spy.HP + "%)");
+
+                            Console.WriteLine();
+                        }
                         break;
 
-                    case Command.Remove:
-                        Remove(value);
+                    case Command.Hire:
+                    case Command.HireShortcut:
+                        if (HiringBudget >= Cost.HiringCostPerSpy)
+                        {
+                            Spy newSpy;
+
+                            do
+                            {
+                                newSpy = new Spy();
+                            }
+                            while (spyCollection.ContainsKey(newSpy.Id));
+
+                            spyCollection.Add(newSpy.Id, newSpy);
+
+                            Console.WriteLine("Spy " + newSpy.Id + " has joined the organization!");
+
+                            HiringBudget -= newSpy.HiringCost;
+                        }
+                        else
+                        {
+                            Console.WriteLine("There are no more funds in the hiring budget to hire a new spy!");
+                        }
                         break;
 
-                    case Command.RemoveDirectory:
-                        RemoveDirectory(value);
-                        break;
+                    case Command.Deploy:
+                    case Command.DeployShortcut:
+                        if (Int32.TryParse(value1, out int spyId))
+                        {
+                            if (spyCollection.ContainsKey(spyId))
+                            {
+                                string location = value2;
 
-                    case Command.RemoveFile:
-                        RemoveFile(value);
+                                if (locationCollection.ContainsKey(location))
+                                {
+                                    if (!spyCollection[spyId].Deployed)
+                                    {
+                                        Console.WriteLine("Spy " + spyId + " deployed to " + location);
+
+                                        spyCollection[spyId].Deployed = true;
+                                        spyCollection[spyId].TravelStartTime = DateTime.Now;
+                                        spyCollection[spyId].TravelEndTime = DateTime.Now.Add(locationCollection[location].FlightDuration);
+                                        spyCollection[spyId].Destination = locationCollection[location].Name;
+                                        spyCollection[spyId].Location = locationCollection[location];
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Spy " + spyId + " has already been deployed");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("No location of \"" + location + "\" could be found on the map");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("No spy of ID \"" + spyId + "\" could be found in the organization's hiring roster");
+                            }
+                        }
                         break;
                 }
             }
-            while (!commandInput.Equals("exit"));
-
-            Environment.Exit(0);
-        }
-
-        private static FileSystem.Directory ChangeDirectory(FileSystem.Directory currentDirectory, FileSystem.Directory directoryChangingTo)
-        {
-            if (directoryChangingTo.Name.Equals(".."))
-            {
-                return currentDirectory.ParentDirectory;
-            }
-
-            if (currentDirectory.Directories.TryGetValue(directoryChangingTo.Name, out directoryChangingTo))
-            {
-                return directoryChangingTo;
-            }
-
-            return null;
-        }
-
-        private static void List()
-        {
-            ListDirectory();
-            ListFile();
-        }
-
-        private static void ListDirectory()
-        {
-            foreach (FileSystem.Directory directory in currentDirectory.Directories.Values)
-            {
-                Console.Write("/" + directory.Name + " ");
-            }
-
-            Console.WriteLine("\nDirectories: " + currentDirectory.Directories.Values.Count);
-        }
-
-        private static void ListFile()
-        {
-            foreach (FileSystem.File file in currentDirectory.Files.Values)
-            {
-                Console.Write(file.Name + " ");
-            }
-
-            Console.WriteLine("\nFiles: " + currentDirectory.Files.Values.Count);
-        }
-
-        private static void MakeDirectory(FileSystem.Directory currentDirectory, string newDirectoryName)
-        {
-            if (newDirectoryName.Length > 8)
-            {
-                newDirectoryName = newDirectoryName.Substring(0, 8);
-            }
-
-            if (!currentDirectory.Directories.ContainsKey(newDirectoryName))
-            {
-                FileSystem.Directory newDirectory = new FileSystem.Directory { Name = newDirectoryName, IsRoot = false, ParentDirectory = currentDirectory };
-
-                currentDirectory.Directories.Add(newDirectory.Name, newDirectory);
-                Console.WriteLine("Directory \"" + newDirectory.Name + "\" created");
-            }
-        }
-
-        private static void MakeFile(FileSystem.Directory currentDirectory, string newFileName)
-        {
-            if (newFileName.Length > 8)
-            {
-                newFileName = newFileName.Substring(0, 8);
-            }
-
-            if (!currentDirectory.Files.ContainsKey(newFileName))
-            {
-                FileSystem.File newFile = new FileSystem.File { Name = newFileName };
-
-                currentDirectory.Files.Add(newFile.Name, newFile);
-                Console.WriteLine("File \"" + newFile.Name + "\" created");
-            }
-        }
-
-        private static void Remove(string name)
-        {
-            RemoveDirectory(name);
-            RemoveFile(name);
-        }
-
-        private static void RemoveDirectory(string directoryName)
-        {
-            if (currentDirectory.Directories.ContainsKey(directoryName))
-            {
-                currentDirectory.Directories.Remove(directoryName);
-                Console.WriteLine("Directory \"" + directoryName + "\" removed");
-            }
-        }
-
-        private static void RemoveFile(string fileName)
-        {
-            if (currentDirectory.Files.ContainsKey(fileName))
-            {
-                currentDirectory.Files.Remove(fileName);
-                Console.WriteLine("File \"" + fileName + "\" removed");
-            }
+            while (!commandInput.Equals(Command.Exit) && !commandInput.Equals(Command.ExitShortcut));
         }
     }
 }

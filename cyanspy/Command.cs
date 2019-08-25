@@ -1,19 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace cyanspy
+﻿namespace cyanspy
 {
     public static class Command
     {
-        public const string ChangeDirectory = "cd";
-        public const string MakeDirectory = "mkd";
-        public const string MakeFile = "mkf";
-        public const string List = "ls";
-        public const string ListDirectory = "lsd";
-        public const string ListFile = "lsf";
-        public const string Remove = "rm";
-        public const string RemoveDirectory = "rmd";
-        public const string RemoveFile = "rmf";
+        public const string Help = "help";
+
+        public const string Exit = "exit";
+        public const string ExitShortcut = "q";
+
+        public const string Map = "map";
+        public const string MapShortcut = "mp";
+
+        public const string Travel = "travel";
+        public const string TravelShortcut = "tr";
+
+        public const string List = "list";
+        public const string ListShortcut = "ls";
+
+        public const string Hire = "hire";
+        public const string HireShortcut = "h";
+
+        public const string Deploy = "deploy";
+        public const string DeployShortcut = "dp";
     }
 }
