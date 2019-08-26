@@ -19,7 +19,6 @@
         public const string Hire = "hire";
         public const string HireShortcut = "h";
 
-        public const string Deploy = "deploy";
-        public const string DeployShortcut = "dp";
+        public const string Move = "move";
     }
 }

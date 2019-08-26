@@ -13,11 +13,16 @@ namespace cyanspy
 
         public static void Main()
         {
-            locationCollection.Add("Boston", new Location("Boston", new TimeSpan(0, 1, 0)));
-            locationCollection.Add("London", new Location("London", new TimeSpan(0, 2, 0)));
-            locationCollection.Add("Paris", new Location("Paris", new TimeSpan(0, 3, 0)));
-            locationCollection.Add("Tokyo", new Location("Tokyo", new TimeSpan(0, 5, 0)));
+            Location hq = new Location("HQ");
+            Location hotel = new Location("Hotel");
+            Location garage = new Location("Garage");
+            Location cafe = new Location("Cafe");
 
+            locationCollection.Add(hq.Name, hq);
+            locationCollection.Add(hotel.Name, hotel);
+            locationCollection.Add(garage.Name, garage);
+            locationCollection.Add(cafe.Name, cafe);
+            
             string commandInput = string.Empty;
 
             do
@@ -39,59 +44,72 @@ namespace cyanspy
                         Console.WriteLine("list\t\t\tLists hired spies");
                         Console.WriteLine("travel\t\t\tTravel status of hired spies");
                         Console.WriteLine("map\t\t\tShows a map of locations");
-                        Console.WriteLine("deploy [spy] [location]\tDeploys a spy to a location");
-                        Console.WriteLine("exit\t\t\tQuits the game\n");
-                        Console.WriteLine("Example Deployment Commands");
-                        Console.WriteLine("deploy 32 Paris\t\tDeploys Spy ID 32 to Paris");
-                        Console.WriteLine("deploy 53 London\tDeploys Spy ID 53 to London");
+                        Console.WriteLine("move [spy] [location]\tMoves a spy to a new location");
+                        Console.WriteLine("exit\t\t\tQuits the game");
+                        break;
+
+                    case Command.Move:
+                        if (Int32.TryParse(value1, out int spyId))
+                        {
+                            if (spyCollection.ContainsKey(spyId))
+                            {
+                                if (locationCollection.ContainsKey(value2))
+                                {
+                                    Location destination = locationCollection[value2];
+
+                                    TimeSpan ts = GetTimeSpanBetweenLocations(spyCollection[spyId].Source, destination);
+
+                                    spyCollection[spyId].TravelStartTime = DateTime.Now;
+                                    spyCollection[spyId].TravelEndTime = DateTime.Now.Add(ts);
+                                    spyCollection[spyId].Destination = destination;
+
+                                    Console.WriteLine("Spy " + spyId + " moving from " + spyCollection[spyId].Source.Name + " to " + spyCollection[spyId].Destination.Name);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("No location of \"" + value2 + "\" could be found on the map");
+                                }
+                            }
+                        }
                         break;
 
                     case Command.List:
                     case Command.ListShortcut:
-                        Console.WriteLine("ID\tName\t\tCondition");
+                        Console.WriteLine("ID\tName\tCondition");
 
                         foreach (Spy spy in spyCollection.Values)
                         {
-                            Console.WriteLine(spy.Id + "\t" + spy.Name + "\t" + spy.Condition + " (" + spy.HP + "%)");
+                            Console.WriteLine(spy.Id + "\t" + spy.Name +
+                                "\t" + spy.Condition.Status + " (" + spy.HP + "%)");
                         }
                         break;
 
                     case Command.Map:
                     case Command.MapShortcut:
-                        Console.WriteLine("Location\tFlight Duration");
+                        Console.WriteLine("Location");
 
                         foreach (Location location in locationCollection.Values)
                         {
-                            Console.WriteLine(location.Name + "\t\t" +
-                                location.FlightDuration.Hours + ":" +
-                                location.FlightDuration.Minutes + ":" +
-                                location.FlightDuration.Seconds);
+                            Console.WriteLine(location.Name + " " + location.X + "," + location.Y);
                         }
                         break;
 
                     case Command.Travel:
                     case Command.TravelShortcut:
-                        Console.WriteLine("Spy\tDestination\tTravel Status\t\tCondition");
-
+                        Console.WriteLine("Spy\tDestination\tTravel Status\t\tTravel Mode");
+                        
                         foreach (Spy spy in spyCollection.Values)
                         {
-                            Console.Write(spy.Id +
-                                (spy.Deployed ? "\t" + spy.Destination : string.Empty) + "\t\t");
-
-                            if (spy.Deployed)
+                            if (spy.Destination != null)
                             {
-                                Console.Write(DateTime.Now >= spy.TravelEndTime ? "Arrived\t\t\t" : "On Route (" +
-                                spy.TravelEndTime.ToString("hh:mm:ss") + " ETA)\t");
-                            }
-                            else
-                            {
-                                Console.Write("\t\t\t\t");
-                            }
+                                Console.Write(spy.Id +
+                                    ("\t" + spy.Destination.Name) + "\t\t");
 
-                            Console.Write(spy.Condition);
-                            Console.Write(" (" + spy.HP + "%)");
+                                    Console.Write(DateTime.Now >= spy.TravelEndTime ? "Arrived\t\t\t" : "On Route (" +
+                                    spy.TravelEndTime.ToString("hh:mm:ss") + " ETA)\t");
 
-                            Console.WriteLine();
+                                Console.WriteLine();
+                            }
                         }
                         break;
 
@@ -107,6 +125,8 @@ namespace cyanspy
                             }
                             while (spyCollection.ContainsKey(newSpy.Id));
 
+                            newSpy.Source = locationCollection["HQ"];
+
                             spyCollection.Add(newSpy.Id, newSpy);
 
                             Console.WriteLine("Spy " + newSpy.Id + " has joined the organization!");
@@ -118,46 +138,38 @@ namespace cyanspy
                             Console.WriteLine("There are no more funds in the hiring budget to hire a new spy!");
                         }
                         break;
-
-                    case Command.Deploy:
-                    case Command.DeployShortcut:
-                        if (Int32.TryParse(value1, out int spyId))
-                        {
-                            if (spyCollection.ContainsKey(spyId))
-                            {
-                                string location = value2;
-
-                                if (locationCollection.ContainsKey(location))
-                                {
-                                    if (!spyCollection[spyId].Deployed)
-                                    {
-                                        Console.WriteLine("Spy " + spyId + " deployed to " + location);
-
-                                        spyCollection[spyId].Deployed = true;
-                                        spyCollection[spyId].TravelStartTime = DateTime.Now;
-                                        spyCollection[spyId].TravelEndTime = DateTime.Now.Add(locationCollection[location].FlightDuration);
-                                        spyCollection[spyId].Destination = locationCollection[location].Name;
-                                        spyCollection[spyId].Location = locationCollection[location];
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Spy " + spyId + " has already been deployed");
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("No location of \"" + location + "\" could be found on the map");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("No spy of ID \"" + spyId + "\" could be found in the organization's hiring roster");
-                            }
-                        }
-                        break;
                 }
             }
             while (!commandInput.Equals(Command.Exit) && !commandInput.Equals(Command.ExitShortcut));
+        }
+
+        private static TimeSpan GetTimeSpanBetweenLocations(Location source, Location destination)
+        {
+            int hours = 0;
+            int minutes = 0;
+            int seconds = 0;
+
+            if (source.X > destination.X)
+            {
+                minutes = source.X - destination.X;
+            }
+
+            if (destination.X > source.X)
+            {
+                minutes = destination.X - source.X;
+            }
+
+            if(source.Y > destination.Y)
+            {
+                minutes = source.Y - destination.Y;
+            }
+
+            if (destination.Y > source.Y)
+            {
+                minutes = destination.Y - source.Y;
+            }
+
+            return new TimeSpan(hours, minutes, seconds);
         }
     }
 }

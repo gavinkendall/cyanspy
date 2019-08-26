@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace cyanspy
+﻿namespace cyanspy
 {
     public static class Cost
     {

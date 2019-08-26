@@ -15,42 +15,39 @@ namespace cyanspy
 
         public int Id { get; set; }
         public string Name { get; set; }
-        public bool Deployed { get; set; }
 
-        public Location Location { get; set; }
-        public string Destination { get; set; }
+        public Location Source { get; set; }
+        public Location Destination { get; set; }
+
         public DateTime TravelStartTime { get; set; }
         public DateTime TravelEndTime { get; set; }
 
         public double HP { get; set; }
-        public bool Drunk { get; set; }
-        public bool Healthy { get; set; }
-        public bool Poisonded { get; set; }
-        public string Condition { get; set; }
+
+        public SpyAction Action { get; set; }
+        public SpyCondition Condition { get; set; }
 
         public Spy()
         {
-            Name = "Anonymous";
-
-            Deployed = false;
+            Action = new SpyAction();
+            Condition = new SpyCondition();
 
             Id = GenerateRandomNumber(MIN_ID, MAX_ID);
             HP = GenerateRandomNumber((int)MIN_HEALTH, (int)MAX_HEALTH);
 
             if (HP >= MAX_HEALTH || HP > CRITICAL_HEALTH)
             {
-                Healthy = true;
-                Condition = "Healthy";
+                Condition.Healthy = true;
             }
 
             if (HP > 0 && HP < CRITICAL_HEALTH)
             {
-                Condition = "Critical";
+                Condition.Healthy = false;
             }
 
             if (HP <= 0)
             {
-                Condition = "Deceased";
+                Condition.Deceased = true;
             }
         }
 
