@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace cyanspy
 {
     public class Program
     {
-        private static readonly string PLAYER_NAME = "cyan";
+        private static readonly string PLAYER_NAME = "Cyan";
         private static readonly string PLAYER_MNEMONIC = "c";
 
         public static void Main()
@@ -14,11 +13,17 @@ namespace cyanspy
             try
             {
                 Map map = new Map();
-                Location location = new Location(PLAYER_NAME, PLAYER_MNEMONIC);
+                Location player = new Location(PLAYER_NAME, PLAYER_MNEMONIC);
+                Location lake = new Location("lake", "@");
 
-                map.Add(location);
+                map.AddLocation(player);
+                map.AddLocation(lake);
 
                 string commandInput = string.Empty;
+
+                // Setup just for development/debugging.
+                Time.Enabled = true;
+                map.Enabled = true;
 
                 do
                 {
@@ -26,6 +31,9 @@ namespace cyanspy
                     {
                         map.Render();
                     }
+
+                    Location pl = map.GetLocationByName(PLAYER_NAME);
+                    Console.WriteLine(pl.X + " " + pl.Y);
 
                     Console.Write(Time.Show() + "> ");
                     commandInput = Console.ReadLine();

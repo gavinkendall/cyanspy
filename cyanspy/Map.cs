@@ -14,9 +14,24 @@ namespace cyanspy
             _map = new Dictionary<string, Location>();
         }
 
-        public void Add(Location location)
+        public void AddLocation(Location newLocation)
         {
-            _map.Add(location.Name, location);
+            // Recursively keep adding the new location until it no longer
+            // has X and Y coordinates that conflict with X and Y coordinates
+            // of any existing location on the map.
+            foreach(Location existingLocation in _map.Values)
+            {
+                if ((newLocation.X == existingLocation.X) &&
+                    (newLocation.Y == existingLocation.Y))
+                {
+                    AddLocation(new Location(newLocation.Name, newLocation.Mnemonic));
+                }
+            }
+
+            if (!_map.ContainsKey(newLocation.Name))
+            {
+                _map.Add(newLocation.Name, newLocation);
+            }
         }
 
         public Location GetLocationByName(string name)
