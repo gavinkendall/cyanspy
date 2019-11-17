@@ -46,16 +46,16 @@ namespace cyanspy
         {
             /*
               0  1  2  3  4  5  6  7  8  9  
-            0 .  .  .  .  .  .  .  .  .  . 0
-            1 .  .  .  .  .  .  .  .  .  . 1
-            2 .  .  .  .  .  .  .  .  .  . 2
-            3 .  .  .  .  .  .  .  .  .  . 3
-            4 .  .  .  .  .  .  .  .  .  . 4
-            5 .  .  .  .  .  .  .  .  .  . 5
-            6 .  .  .  .  .  .  .  .  .  . 6
-            7 .  .  .  .  .  .  .  .  .  . 7
-            8 .  .  .  .  .  .  .  .  .  . 8
             9 .  .  .  .  .  .  .  .  .  . 9
+            8 .  .  .  .  .  .  .  .  .  . 8
+            7 .  .  .  .  .  .  .  .  .  . 7
+            6 .  .  .  .  .  .  .  .  .  . 6
+            5 .  .  .  .  .  .  .  .  .  . 5
+            4 .  .  .  .  .  .  .  .  .  . 4
+            3 .  .  .  .  .  .  .  .  .  . 3
+            2 .  .  .  .  .  .  .  .  .  . 2
+            1 .  .  .  .  .  .  .  .  .  . 1
+            0 .  .  .  .  .  .  .  .  .  . 0
               0  1  2  3  4  5  6  7  8  9  
             */
 
@@ -74,7 +74,7 @@ namespace cyanspy
                     if ((y < 10 && y > -1) && (x == -1 || x == 10))
                     {
                         // Display the Y coordinate value if we're either at the left edge (x == -1) or the right edge (x == 10) of the map
-                        // and we're somewhere in between the top edge and the bottom edge of the map (y > -1 && y < 10).
+                        // and we're somewhere in between the top edge and the bottom edge of the map (y < 10 && y > -1).
                         Console.Write(y.ToString());
                     }
 
@@ -83,7 +83,7 @@ namespace cyanspy
                     {
                         if (y == 10 || y == -1)
                         {
-                            // Display the X coordinate value if we're either at the top edge (y == -1) or at the bottom edge (y == 10) of the map
+                            // Display the X coordinate value if we're either at the top edge (y == 10) or at the bottom edge (y == -1) of the map
                             // and we're somewhere in between the left edge and the right edge of the map (x > -1 && x < 10).
                             Console.Write(x.ToString() + "  ");
                         }
