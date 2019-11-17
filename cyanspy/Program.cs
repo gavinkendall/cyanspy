@@ -6,28 +6,24 @@ namespace cyanspy
 {
     public class Program
     {
-        private static int HiringBudget = Cost.InitialHiringBudget;
-
-        private static Dictionary<int, Spy> spyCollection = new Dictionary<int, Spy>();
-        private static Dictionary<string, Location> locationCollection = new Dictionary<string, Location>();
+        private static Map _map;
+        private static Time _time;
 
         public static void Main()
         {
-            Location hq = new Location("HQ");
-            Location hotel = new Location("Hotel");
-            Location garage = new Location("Garage");
-            Location cafe = new Location("Cafe");
+            _map = new Map();
+            _time = new Time();
 
-            locationCollection.Add(hq.Name, hq);
-            locationCollection.Add(hotel.Name, hotel);
-            locationCollection.Add(garage.Name, garage);
-            locationCollection.Add(cafe.Name, cafe);
-            
             string commandInput = string.Empty;
 
             do
             {
-                Console.Write(DateTime.Now.ToString("HH:mm:ss") + " " + HiringBudget + "> ");
+                if (_map.Enabled)
+                {
+                    _map.Render();
+                }
+
+                Console.Write(_time.Show() + "> ");
                 commandInput = Console.ReadLine();
 
                 Regex rgxCommandInput = new Regex(@"(?<Command>[a-z]+) ?(?<Value1>[0-9a-zA-Z]+)? ?(?<Value2>[0-9a-zA-Z]+)?");
@@ -38,109 +34,37 @@ namespace cyanspy
 
                 switch (command.ToLower())
                 {
-                    case Command.Help:
-                        Console.WriteLine("Command\t\t\tExplanation");
-                        Console.WriteLine("hire\t\t\tHires a new spy");
-                        Console.WriteLine("list\t\t\tLists hired spies");
-                        Console.WriteLine("travel\t\t\tTravel status of hired spies");
-                        Console.WriteLine("map\t\t\tShows a map of locations");
-                        Console.WriteLine("move [spy] [location]\tMoves a spy to a new location");
-                        Console.WriteLine("exit\t\t\tQuits the game");
-                        break;
-
                     case Command.Move:
-                        if (Int32.TryParse(value1, out int spyId))
-                        {
-                            if (spyCollection.ContainsKey(spyId))
-                            {
-                                if (locationCollection.ContainsKey(value2))
-                                {
-                                    Location destination = locationCollection[value2];
-
-                                    TimeSpan ts = GetTimeSpanBetweenLocations(spyCollection[spyId].Source, destination);
-
-                                    spyCollection[spyId].TravelStartTime = DateTime.Now;
-                                    spyCollection[spyId].TravelEndTime = DateTime.Now.Add(ts);
-                                    spyCollection[spyId].Destination = destination;
-
-                                    Console.WriteLine("Spy " + spyId + " moving from " + spyCollection[spyId].Source.Name + " to " + spyCollection[spyId].Destination.Name);
-                                }
-                                else
-                                {
-                                    Console.WriteLine("No location of \"" + value2 + "\" could be found on the map");
-                                }
-                            }
-                        }
-                        break;
-
-                    case Command.List:
-                    case Command.ListShortcut:
-                        Console.WriteLine("ID\tName\tCondition");
-
-                        foreach (Spy spy in spyCollection.Values)
-                        {
-                            Console.WriteLine(spy.Id + "\t" + spy.Name +
-                                "\t" + spy.Condition.Status + " (" + spy.HP + "%)");
-                        }
                         break;
 
                     case Command.Map:
-                    case Command.MapShortcut:
-                        Console.WriteLine("Location");
-
-                        foreach (Location location in locationCollection.Values)
+                        if (value1.Equals("on"))
                         {
-                            Console.WriteLine(location.Name + " " + location.X + "," + location.Y);
+                            _map.Enabled = true;
+                        }
+
+                        if (value1.Equals("off"))
+                        {
+                            _map.Enabled = false;
                         }
                         break;
 
-                    case Command.Travel:
-                    case Command.TravelShortcut:
-                        Console.WriteLine("Spy\tDestination\tTravel Status\t\tTravel Mode");
-                        
-                        foreach (Spy spy in spyCollection.Values)
+                    case Command.Time:
+                        if (value1.Equals("on"))
                         {
-                            if (spy.Destination != null)
-                            {
-                                Console.Write(spy.Id +
-                                    ("\t" + spy.Destination.Name) + "\t\t");
-
-                                    Console.Write(DateTime.Now >= spy.TravelEndTime ? "Arrived\t\t\t" : "On Route (" +
-                                    spy.TravelEndTime.ToString("hh:mm:ss") + " ETA)\t");
-
-                                Console.WriteLine();
-                            }
+                            _time.Enabled = true;
                         }
-                        break;
 
-                    case Command.Hire:
-                    case Command.HireShortcut:
-                        if (HiringBudget >= Cost.HiringCostPerSpy)
+                        if (value1.Equals("off"))
                         {
-                            Spy newSpy;
-
-                            do
-                            {
-                                newSpy = new Spy();
-                            }
-                            while (spyCollection.ContainsKey(newSpy.Id));
-
-                            newSpy.Source = locationCollection["HQ"];
-
-                            spyCollection.Add(newSpy.Id, newSpy);
-
-                            Console.WriteLine("Spy " + newSpy.Id + " has joined the organization!");
-
-                            HiringBudget -= newSpy.HiringCost;
-                        }
-                        else
-                        {
-                            Console.WriteLine("There are no more funds in the hiring budget to hire a new spy!");
+                            _time.Enabled = false;
                         }
                         break;
                 }
+
+                Console.Clear();
             }
-            while (!commandInput.Equals(Command.Exit) && !commandInput.Equals(Command.ExitShortcut));
+            while (!commandInput.Equals(Command.Exit));
         }
 
         private static TimeSpan GetTimeSpanBetweenLocations(Location source, Location destination)
