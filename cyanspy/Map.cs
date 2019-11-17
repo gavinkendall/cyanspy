@@ -14,6 +14,16 @@ namespace cyanspy
             _map = new Dictionary<string, Location>();
         }
 
+        public void Add(Location location)
+        {
+            _map.Add(location.Name, location);
+        }
+
+        public Location GetLocationByName(string name)
+        {
+            return _map[name];
+        }
+
         /// <summary>
         /// This will render a 10x10 map of the battlefield.
         /// </summary>
@@ -65,7 +75,7 @@ namespace cyanspy
                         else
                         {
                             // Otherwise, display a location on the map.
-                            Console.Write(" " + "." + " ");
+                            Console.Write(" " + DisplayLocation(x, y) + " ");
                         }
                     }
 
@@ -78,6 +88,19 @@ namespace cyanspy
             }
 
             Console.WriteLine();
+        }
+
+        private string DisplayLocation(int x, int y)
+        {
+            foreach(Location location in _map.Values)
+            {
+                if (location.X == x && location.Y == y)
+                {
+                    return location.Mnemonic;
+                }
+            }
+
+            return ".";
         }
     }
 }

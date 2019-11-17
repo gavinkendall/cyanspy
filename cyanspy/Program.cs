@@ -6,65 +6,88 @@ namespace cyanspy
 {
     public class Program
     {
-        private static Map _map;
-        private static Time _time;
+        private static readonly string PLAYER_NAME = "cyan";
+        private static readonly string PLAYER_MNEMONIC = "c";
 
         public static void Main()
         {
-            _map = new Map();
-            _time = new Time();
-
-            string commandInput = string.Empty;
-
-            do
+            try
             {
-                if (_map.Enabled)
+                Map map = new Map();
+                Location location = new Location(PLAYER_NAME, PLAYER_MNEMONIC);
+
+                map.Add(location);
+
+                string commandInput = string.Empty;
+
+                do
                 {
-                    _map.Render();
+                    if (map.Enabled)
+                    {
+                        map.Render();
+                    }
+
+                    Console.Write(Time.Show() + "> ");
+                    commandInput = Console.ReadLine();
+
+                    Regex rgxCommandInput = new Regex(@"(?<Command>[a-z]+) ?(?<Value1>[0-9a-zA-Z]+)? ?(?<Value2>[0-9a-zA-Z]+)?");
+
+                    string command = rgxCommandInput.Match(commandInput).Groups["Command"].Value;
+                    string value1 = rgxCommandInput.Match(commandInput).Groups["Value1"].Value;
+                    string value2 = rgxCommandInput.Match(commandInput).Groups["Value2"].Value;
+
+                    switch (command.ToLower())
+                    {
+                        case Command.Move:
+                            Location playerLocation = map.GetLocationByName(PLAYER_NAME);
+
+                            int x = playerLocation.X;
+                            int y = playerLocation.Y;
+
+                            if (Int32.TryParse(value1, out x) && Int32.TryParse(value2, out y))
+                            {
+                                if (x >= 0 && x <= 9 && y >= 0 && y <= 9)
+                                {
+                                    playerLocation.X = x;
+                                    playerLocation.Y = y;
+                                }
+                            }
+                            break;
+
+                        case Command.Map:
+                            if (value1.Equals("on"))
+                            {
+                                map.Enabled = true;
+                            }
+
+                            if (value1.Equals("off"))
+                            {
+                                map.Enabled = false;
+                            }
+                            break;
+
+                        case Command.Time:
+                            if (value1.Equals("on"))
+                            {
+                                Time.Enabled = true;
+                            }
+
+                            if (value1.Equals("off"))
+                            {
+                                Time.Enabled = false;
+                            }
+                            break;
+                    }
+
+                    Console.Clear();
                 }
-
-                Console.Write(_time.Show() + "> ");
-                commandInput = Console.ReadLine();
-
-                Regex rgxCommandInput = new Regex(@"(?<Command>[a-z]+) ?(?<Value1>[0-9a-zA-Z]+)? ?(?<Value2>[0-9a-zA-Z]+)?");
-
-                string command = rgxCommandInput.Match(commandInput).Groups["Command"].Value;
-                string value1 = rgxCommandInput.Match(commandInput).Groups["Value1"].Value;
-                string value2 = rgxCommandInput.Match(commandInput).Groups["Value2"].Value;
-
-                switch (command.ToLower())
-                {
-                    case Command.Move:
-                        break;
-
-                    case Command.Map:
-                        if (value1.Equals("on"))
-                        {
-                            _map.Enabled = true;
-                        }
-
-                        if (value1.Equals("off"))
-                        {
-                            _map.Enabled = false;
-                        }
-                        break;
-
-                    case Command.Time:
-                        if (value1.Equals("on"))
-                        {
-                            _time.Enabled = true;
-                        }
-
-                        if (value1.Equals("off"))
-                        {
-                            _time.Enabled = false;
-                        }
-                        break;
-                }
-
-                Console.Clear();
+                while (!commandInput.Equals(Command.Exit));
             }
-            while (!commandInput.Equals(Command.Exit));
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+            }
         }
 
         private static TimeSpan GetTimeSpanBetweenLocations(Location source, Location destination)

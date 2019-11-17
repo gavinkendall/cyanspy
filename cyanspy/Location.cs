@@ -8,12 +8,16 @@ namespace cyanspy
         private const int MAX = 9;
 
         public string Name { get; set; }
+        public string Mnemonic { get; set; }
+
         public int X { get; set; }
         public int Y { get; set; }
 
-        public Location(string name)
+        public Location(string name, string mnemonic)
         {
             Name = name;
+            Mnemonic = mnemonic;
+
             X = GenerateRandomNumber(MIN, MAX);
             Y = GenerateRandomNumber(MIN, MAX);
         }

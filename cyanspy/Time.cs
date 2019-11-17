@@ -2,16 +2,11 @@
 
 namespace cyanspy
 {
-    public class Time
+    public static class Time
     {
-        public bool Enabled { get; set; }
+        public static bool Enabled { get; set; }
 
-        public Time()
-        {
-
-        }
-
-        public string Show()
+        public static string Show()
         {
             if (Enabled)
             {
