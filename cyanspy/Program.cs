@@ -1,23 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace cyanspy
 {
     public class Program
     {
-        private static readonly string PLAYER_NAME = "Cyan";
-        private static readonly string PLAYER_MNEMONIC = "c";
-
         public static void Main()
         {
             try
             {
+                Reset:
+                Pilot cyan = new Pilot("Cyan");
+
+                Mech playerMech = new Mech("PlayerMech");
+                Dictionary<string, Pilot> playerMechPilots = new Dictionary<string, Pilot>();
+
+                playerMechPilots.Add(cyan.Name, cyan);
+
+                playerMech.Pilots = playerMechPilots;
+
                 Map map = new Map();
-                Location player = new Location(PLAYER_NAME, PLAYER_MNEMONIC);
-                Location lake = new Location("lake", "@");
+                Location player = new Location(playerMech.Name, playerMech.Mnemonic);
+                Location water = new Location("water", "W");
 
                 map.AddLocation(player);
-                map.AddLocation(lake);
+                map.AddLocation(water);
 
                 string commandInput = string.Empty;
 
@@ -32,8 +40,14 @@ namespace cyanspy
                         map.Render();
                     }
 
-                    Location pl = map.GetLocationByName(PLAYER_NAME);
-                    Console.WriteLine(pl.X + " " + pl.Y);
+                    Location pl = map.GetLocationByName("PlayerMech");
+                    Console.WriteLine("Player Mech = " + pl.X + " " + pl.Y);
+
+                    Location waterLocation = map.GetLocationByName("water");
+                    Console.WriteLine("Water = " + waterLocation.X + " " + waterLocation.Y);
+
+                    TimeSpan ts = GetTimeSpanBetweenLocations(pl, waterLocation);
+                    Console.WriteLine("Duration between Player Mech and Water = " + ts.Hours + ":" + ts.Minutes + ":" + ts.Seconds);
 
                     Console.Write(Time.Show() + "> ");
                     commandInput = Console.ReadLine();
@@ -46,8 +60,13 @@ namespace cyanspy
 
                     switch (command.ToLower())
                     {
+                        case "reset":
+                            Console.Clear();
+                            goto Reset;
+                            break;
+
                         case Command.Move:
-                            Location playerLocation = map.GetLocationByName(PLAYER_NAME);
+                            Location playerLocation = map.GetLocationByName("PlayerMech");
 
                             int x = playerLocation.X;
                             int y = playerLocation.Y;
