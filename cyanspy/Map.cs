@@ -14,6 +14,23 @@ namespace cyanspy
             _map = new Dictionary<string, Location>();
         }
 
+        private string DisplayLocation(int x, int y)
+        {
+            foreach (Location location in _map.Values)
+            {
+                if (location.X == x && location.Y == y)
+                {
+                    return location.Mnemonic;
+                }
+            }
+
+            return ".";
+        }
+
+        /// <summary>
+        /// Adds a new location to the map.
+        /// </summary>
+        /// <param name="newLocation">Location to add to map</param>
         public void AddLocation(Location newLocation)
         {
             // Recursively keep adding the new location until it no longer
@@ -34,6 +51,11 @@ namespace cyanspy
             }
         }
 
+        /// <summary>
+        /// Gets a location by its name.
+        /// </summary>
+        /// <param name="name">Name of location to find</param>
+        /// <returns>Location found by its name</returns>
         public Location GetLocationByName(string name)
         {
             return _map[name];
@@ -105,17 +127,47 @@ namespace cyanspy
             Console.WriteLine();
         }
 
-        private string DisplayLocation(int x, int y)
+        /// <summary>
+        /// Gets the distance between two locations. Uses math.
+        /// </summary>
+        /// <param name="source">Source location</param>
+        /// <param name="target">Target location</param>
+        /// <returns>Distance between source and target</returns>
+        public double GetDistanceBetweenLocations(Location source, Location target)
         {
-            foreach(Location location in _map.Values)
-            {
-                if (location.X == x && location.Y == y)
-                {
-                    return location.Mnemonic;
-                }
-            }
+            int dx = source.X - target.X;
+            int dy = source.Y - target.Y;
 
-            return ".";
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        /// <summary>
+        /// Determines if a source is within a specified range of a target.
+        /// </summary>
+        /// <param name="source">Source location</param>
+        /// <param name="target">Target location</param>
+        /// <param name="range">Range.
+        /// Bigger range is more likely for locations to be within range.
+        /// Smaller range is less likely for locations to be within range.</param>
+        /// <returns>True if locations are within range. False if locations are not within range</returns>
+        public bool AreLocationsWithinRange(Location source, Location target, int range)
+        {
+            return GetDistanceBetweenLocations(source, target) <= range;
+        }
+
+        /// <summary>
+        /// Gets the duration between two locations.
+        /// </summary>
+        /// <param name="source">Source location</param>
+        /// <param name="target">Target location</param>
+        /// <returns>Duration between two locations</returns>
+        public TimeSpan GetTimeSpanBetweenLocations(Location source, Location target)
+        {
+            int hours = 0;
+            int minutes = (int)GetDistanceBetweenLocations(source, target);
+            int seconds = 0;
+
+            return new TimeSpan(hours, minutes, seconds);
         }
     }
 }

@@ -10,22 +10,27 @@ namespace cyanspy
         {
             try
             {
-                Reset:
-                Pilot cyan = new Pilot("Cyan");
+            Reset:
+                Mech mechLionheart = new Mech("Lionheart");
 
-                Mech playerMech = new Mech("PlayerMech");
-                Dictionary<string, Pilot> playerMechPilots = new Dictionary<string, Pilot>();
+                Pilot pilotCyan = new Pilot("Cyan");
+                Pilot pilotAeon = new Pilot("Aeon");
 
-                playerMechPilots.Add(cyan.Name, cyan);
+                Dictionary<string, Pilot> mechLionHeartPilots = new Dictionary<string, Pilot>
+                {
+                    { pilotAeon.Name, pilotAeon },
+                    { pilotCyan.Name, pilotCyan }
+                };
 
-                playerMech.Pilots = playerMechPilots;
+                mechLionheart.Pilots = mechLionHeartPilots;
 
                 Map map = new Map();
-                Location player = new Location(playerMech.Name, playerMech.Mnemonic);
-                Location water = new Location("water", "W");
 
-                map.AddLocation(player);
-                map.AddLocation(water);
+                Location locationMechLionheart = new Location(mechLionheart.Name, mechLionheart.Mnemonic);
+                Location locationWater = new Location("water", "W");
+
+                map.AddLocation(locationMechLionheart);
+                map.AddLocation(locationWater);
 
                 string commandInput = string.Empty;
 
@@ -40,14 +45,29 @@ namespace cyanspy
                         map.Render();
                     }
 
-                    Location pl = map.GetLocationByName("PlayerMech");
-                    Console.WriteLine("Player Mech = " + pl.X + " " + pl.Y);
+                    Location mechLocation = map.GetLocationByName("Lionheart");
+                    Console.WriteLine("Mech = " + mechLocation.X + " " + mechLocation.Y);
 
                     Location waterLocation = map.GetLocationByName("water");
                     Console.WriteLine("Water = " + waterLocation.X + " " + waterLocation.Y);
+                    
+                    if (map.AreLocationsWithinRange(mechLocation, waterLocation, range: 1))
+                    {
+                        Console.WriteLine("Mech within attack range of object");
+                    }
 
-                    TimeSpan ts = GetTimeSpanBetweenLocations(pl, waterLocation);
-                    Console.WriteLine("Duration between Player Mech and Water = " + ts.Hours + ":" + ts.Minutes + ":" + ts.Seconds);
+                    if(map.AreLocationsWithinRange(mechLocation, waterLocation, range: 2))
+                    {
+                        Console.WriteLine("Mech within missile launch range of object");
+                    }
+
+                    if (map.AreLocationsWithinRange(mechLocation, waterLocation, range: 3))
+                    {
+                        Console.WriteLine("Mech within radar scan range of object");
+                    }
+
+                    TimeSpan ts = map.GetTimeSpanBetweenLocations(mechLocation, waterLocation);
+                    Console.WriteLine("Duration between Mech and Water = " + ts.Hours + ":" + ts.Minutes + ":" + ts.Seconds);
 
                     Console.Write(Time.Show() + "> ");
                     commandInput = Console.ReadLine();
@@ -60,13 +80,14 @@ namespace cyanspy
 
                     switch (command.ToLower())
                     {
+                        // For debugging purposes only.
                         case "reset":
                             Console.Clear();
                             goto Reset;
                             break;
 
                         case Command.Move:
-                            Location playerLocation = map.GetLocationByName("PlayerMech");
+                            Location playerLocation = map.GetLocationByName("Lionheart");
 
                             int x = playerLocation.X;
                             int y = playerLocation.Y;
@@ -115,35 +136,6 @@ namespace cyanspy
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
             }
-        }
-
-        private static TimeSpan GetTimeSpanBetweenLocations(Location source, Location destination)
-        {
-            int hours = 0;
-            int minutes = 0;
-            int seconds = 0;
-
-            if (source.X > destination.X)
-            {
-                minutes = source.X - destination.X;
-            }
-
-            if (destination.X > source.X)
-            {
-                minutes = destination.X - source.X;
-            }
-
-            if(source.Y > destination.Y)
-            {
-                minutes = source.Y - destination.Y;
-            }
-
-            if (destination.Y > source.Y)
-            {
-                minutes = destination.Y - source.Y;
-            }
-
-            return new TimeSpan(hours, minutes, seconds);
         }
     }
 }

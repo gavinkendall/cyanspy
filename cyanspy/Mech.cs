@@ -7,6 +7,9 @@ namespace cyanspy
     {
         // A mech has pilots, applications, components, and weapons.
         public Dictionary<string, Pilot> Pilots {get; set; }
+        public Dictionary<string, Application> Applications { get; set; }
+        public Dictionary<string, Component> Components { get; set; }
+        public Dictionary<string, Weapon> Weapons { get; set; }
 
         public string Name { get; set; }
         public string Mnemonic { get; private set; }

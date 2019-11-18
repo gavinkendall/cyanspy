@@ -13,6 +13,12 @@ namespace cyanspy
         public int X { get; set; }
         public int Y { get; set; }
 
+        private int GenerateRandomNumber(int min, int max)
+        {
+            Random random = new Random();
+            return random.Next(min, max);
+        }
+
         public Location(string name, string mnemonic)
         {
             Name = name;
@@ -20,12 +26,6 @@ namespace cyanspy
 
             X = GenerateRandomNumber(MIN, MAX);
             Y = GenerateRandomNumber(MIN, MAX);
-        }
-
-        private int GenerateRandomNumber(int min, int max)
-        {
-            Random random = new Random();
-            return random.Next(min, max);
         }
     }
 }
