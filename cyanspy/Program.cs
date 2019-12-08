@@ -27,14 +27,21 @@ namespace cyanspy
 
                 do
                 {
+                    if (mech.DestinationReached())
+                    {
+                        map.RemoveLocation(mech.Source);
+                        map.AddLocation(mech.Destination);
+                        mech.Source = mech.Destination;
+                    }
+
                     if (map.Enabled)
                     {
                         map.Render();
                     }
 
                     Console.WriteLine("Mech Name = " + mech.Name);
-                    Console.WriteLine("Mech Mnemoic = " + mech.Mnemonic);
-                    Console.WriteLine("Mech Moving? " + mech.IsMoving.ToString());
+                    Console.WriteLine("Mech Mnemonic = " + mech.Mnemonic);
+                    Console.WriteLine("Mech Moving = " + mech.IsMoving.ToString());
                     Console.WriteLine("Mech Source = " + mech.Source.X + " " + mech.Source.Y);
                     Console.WriteLine("Mech Destination = " + mech.Destination.X + " " + mech.Destination.Y);
 
@@ -62,13 +69,6 @@ namespace cyanspy
                     Console.WriteLine("Duration between Mech Source and Mech Destination = " + mech.TimeToDestination.Hours + ":" + mech.TimeToDestination.Minutes + ":" + mech.TimeToDestination.Seconds);
 
                     Console.WriteLine("Mech ETA to Destination = " + mech.EstimatedTimeOfArrival.ToString("HH:mm:ss"));
-
-                    if (mech.DestinationReached())
-                    {
-                        map.RemoveLocation(mech.Source);
-                        map.AddLocation(mech.Destination);
-                        mech.Source = mech.Destination;
-                    }
 
                     Console.Write(Time.Show() + "> ");
                     commandInput = Console.ReadLine();
