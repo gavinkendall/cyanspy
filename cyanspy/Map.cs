@@ -51,6 +51,14 @@ namespace cyanspy
             }
         }
 
+        public void RemoveLocation(Location location)
+        {
+            if (_map.ContainsKey(location.Name))
+            {
+                _map.Remove(location.Name);
+            }
+        }
+
         /// <summary>
         /// Gets a location by its name.
         /// </summary>

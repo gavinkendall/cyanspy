@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace cyanspy
@@ -11,25 +10,13 @@ namespace cyanspy
             try
             {
             Reset:
-                Mech mechLionheart = new Mech("Lionheart");
-
-                Pilot pilotCyan = new Pilot("Cyan");
-                Pilot pilotAeon = new Pilot("Aeon");
-
-                Dictionary<string, Pilot> mechLionHeartPilots = new Dictionary<string, Pilot>
-                {
-                    { pilotAeon.Name, pilotAeon },
-                    { pilotCyan.Name, pilotCyan }
-                };
-
-                mechLionheart.Pilots = mechLionHeartPilots;
-
                 Map map = new Map();
 
-                Location locationMechLionheart = new Location(mechLionheart.Name, mechLionheart.Mnemonic);
+                Mech mech = new Mech("Atomic Rabbit", "R");
+
                 Location locationWater = new Location("water", "W");
 
-                map.AddLocation(locationMechLionheart);
+                map.AddLocation(mech.Source);
                 map.AddLocation(locationWater);
 
                 string commandInput = string.Empty;
@@ -45,29 +32,43 @@ namespace cyanspy
                         map.Render();
                     }
 
-                    Location mechLocation = map.GetLocationByName("Lionheart");
-                    Console.WriteLine("Mech = " + mechLocation.X + " " + mechLocation.Y);
+                    Console.WriteLine("Mech Name = " + mech.Name);
+                    Console.WriteLine("Mech Mnemoic = " + mech.Mnemonic);
+                    Console.WriteLine("Mech Moving? " + mech.IsMoving.ToString());
+                    Console.WriteLine("Mech Source = " + mech.Source.X + " " + mech.Source.Y);
+                    Console.WriteLine("Mech Destination = " + mech.Destination.X + " " + mech.Destination.Y);
 
-                    Location waterLocation = map.GetLocationByName("water");
-                    Console.WriteLine("Water = " + waterLocation.X + " " + waterLocation.Y);
+                    Location water = map.GetLocationByName("water");
+                    Console.WriteLine("Water = " + water.X + " " + water.Y);
                     
-                    if (map.AreLocationsWithinRange(mechLocation, waterLocation, range: 1))
+                    if (map.AreLocationsWithinRange(mech.Source, water, range: 1))
                     {
                         Console.WriteLine("Mech within attack range of object");
                     }
 
-                    if(map.AreLocationsWithinRange(mechLocation, waterLocation, range: 2))
+                    if(map.AreLocationsWithinRange(mech.Source, water, range: 2))
                     {
                         Console.WriteLine("Mech within missile launch range of object");
                     }
 
-                    if (map.AreLocationsWithinRange(mechLocation, waterLocation, range: 3))
+                    if (map.AreLocationsWithinRange(mech.Source, water, range: 3))
                     {
                         Console.WriteLine("Mech within radar scan range of object");
                     }
 
-                    TimeSpan ts = map.GetTimeSpanBetweenLocations(mechLocation, waterLocation);
+                    TimeSpan ts = map.GetTimeSpanBetweenLocations(mech.Source, water);
                     Console.WriteLine("Duration between Mech and Water = " + ts.Hours + ":" + ts.Minutes + ":" + ts.Seconds);
+
+                    Console.WriteLine("Duration between Mech Source and Mech Destination = " + mech.TimeToDestination.Hours + ":" + mech.TimeToDestination.Minutes + ":" + mech.TimeToDestination.Seconds);
+
+                    Console.WriteLine("Mech ETA to Destination = " + mech.EstimatedTimeOfArrival.ToString("HH:mm:ss"));
+
+                    if (mech.DestinationReached())
+                    {
+                        map.RemoveLocation(mech.Source);
+                        map.AddLocation(mech.Destination);
+                        mech.Source = mech.Destination;
+                    }
 
                     Console.Write(Time.Show() + "> ");
                     commandInput = Console.ReadLine();
@@ -87,17 +88,20 @@ namespace cyanspy
                             break;
 
                         case Command.Move:
-                            Location playerLocation = map.GetLocationByName("Lionheart");
-
-                            int x = playerLocation.X;
-                            int y = playerLocation.Y;
-
-                            if (Int32.TryParse(value1, out x) && Int32.TryParse(value2, out y))
+                            if (!mech.IsMoving)
                             {
-                                if (x >= 0 && x <= 9 && y >= 0 && y <= 9)
+                                if (Int32.TryParse(value1, out int x) && Int32.TryParse(value2, out int y))
                                 {
-                                    playerLocation.X = x;
-                                    playerLocation.Y = y;
+                                    if (x >= 0 && x <= 9 && y >= 0 && y <= 9)
+                                    {
+                                        Location newMechLocation = new Location(mech.Name, mech.Mnemonic);
+                                        newMechLocation.X = x;
+                                        newMechLocation.Y = y;
+
+                                        TimeSpan timeToDestination = map.GetTimeSpanBetweenLocations(mech.Source, newMechLocation);
+
+                                        mech.Move(newMechLocation, timeToDestination);
+                                    }
                                 }
                             }
                             break;

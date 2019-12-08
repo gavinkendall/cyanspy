@@ -14,7 +14,7 @@ namespace cyanspy
         {
             if (Enabled)
             {
-                return DateTime.Now.ToString("hh:mm:ss") + " ";
+                return DateTime.Now.ToString("HH:mm:ss") + " ";
             }
 
             return string.Empty;
