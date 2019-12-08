@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using System.Collections.Generic;
 
 namespace cyanspy
@@ -12,47 +13,66 @@ namespace cyanspy
 
         public string Name { get; set; }
         public string Mnemonic { get; private set; }
-        public Location Source { get; set; }
         public Location Destination { get; set; }
-        public TimeSpan TimeToDestination { get; set; }
-        public DateTime EstimatedTimeOfArrival { get; set; }
+        public Location Position { get; set; }
         public bool IsMoving { get; set; }
+        public int MovementSpeed { get; set; }
+
+        private Timer _movementTimer;
 
         public Mech(string name, string mnemonic)
         {
             Name = name;
             Mnemonic = mnemonic;
 
-            Source = new Location(Name, Mnemonic);
-            Destination = new Location(Name, Mnemonic);
-            Destination = Source;
+            Position = new Location(Name, Mnemonic);
 
             IsMoving = false;
+            MovementSpeed = 10000;
+            _movementTimer = new Timer();
+            _movementTimer.Elapsed += _movementTimer_Elapsed;
         }
 
-        public void Move(Location destination, TimeSpan timeToDestination)
+        public void Move(Location destination)
         {
             Destination = destination;
-            TimeToDestination = timeToDestination;
-            IsMoving = true;
-            EstimatedTimeOfArrival = DateTime.Now + TimeToDestination;
+
+            _movementTimer.Interval = MovementSpeed;
+            _movementTimer.Start();
+
+            _movementTimer_Elapsed(null, null);
         }
 
-        public bool DestinationReached()
+        private void _movementTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (IsMoving)
-            {
-                if (DateTime.Now >= EstimatedTimeOfArrival)
-                {
-                    TimeToDestination = new TimeSpan();
-                    EstimatedTimeOfArrival = DateTime.Now;
-                    IsMoving = false;
+            IsMoving = true;
 
-                    return true;
-                }
+            if (Destination.X > Position.X)
+            {
+                Position.X++;
             }
 
-            return false;
+            if (Destination.X < Position.X)
+            {
+                Position.X--;
+            }
+
+            if (Destination.Y > Position.Y)
+            {
+                Position.Y++;
+            }
+
+            if (Destination.Y < Position.Y)
+            {
+                Position.Y--;
+            }
+
+            if (Destination.X == Position.X && Destination.Y == Position.Y)
+            {
+                IsMoving = false;
+                Position = Destination;
+                _movementTimer.Stop();
+            }
         }
     }
 }

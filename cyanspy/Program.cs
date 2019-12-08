@@ -12,12 +12,11 @@ namespace cyanspy
             Reset:
                 Map map = new Map();
 
-                Mech mech = new Mech("Atomic Rabbit", "R");
+                Mech mechAtomicRabbit = new Mech("Atomic Rabbit", "R");
+                Mech mechCosmicWolf = new Mech("Cosmic Wolf", "W");
 
-                Location locationWater = new Location("water", "W");
-
-                map.AddLocation(mech.Source);
-                map.AddLocation(locationWater);
+                map.AddLocation(mechAtomicRabbit.Position);
+                map.AddLocation(mechCosmicWolf.Position);
 
                 string commandInput = string.Empty;
 
@@ -27,48 +26,41 @@ namespace cyanspy
 
                 do
                 {
-                    if (mech.DestinationReached())
-                    {
-                        map.RemoveLocation(mech.Source);
-                        map.AddLocation(mech.Destination);
-                        mech.Source = mech.Destination;
-                    }
+                    map.GetLocationByName(mechAtomicRabbit.Name).X = mechAtomicRabbit.Position.X;
+                    map.GetLocationByName(mechAtomicRabbit.Name).Y = mechAtomicRabbit.Position.Y;
 
                     if (map.Enabled)
                     {
                         map.Render();
                     }
 
-                    Console.WriteLine("Mech Name = " + mech.Name);
-                    Console.WriteLine("Mech Mnemonic = " + mech.Mnemonic);
-                    Console.WriteLine("Mech Moving = " + mech.IsMoving.ToString());
-                    Console.WriteLine("Mech Source = " + mech.Source.X + " " + mech.Source.Y);
-                    Console.WriteLine("Mech Destination = " + mech.Destination.X + " " + mech.Destination.Y);
+                    Console.WriteLine("Mech Name = " + mechAtomicRabbit.Name);
+                    Console.WriteLine("Mech Mnemonic = " + mechAtomicRabbit.Mnemonic);
+                    Console.WriteLine("Mech Moving = " + mechAtomicRabbit.IsMoving.ToString());
+                    Console.WriteLine("Mech Position = " + mechAtomicRabbit.Position.X + " " + mechAtomicRabbit.Position.Y);
 
-                    Location water = map.GetLocationByName("water");
-                    Console.WriteLine("Water = " + water.X + " " + water.Y);
-                    
-                    if (map.AreLocationsWithinRange(mech.Source, water, range: 1))
+                    if (mechAtomicRabbit.IsMoving)
                     {
-                        Console.WriteLine("Mech within attack range of object");
+                        Console.WriteLine("Mech Destination = " + mechAtomicRabbit.Destination.X + " " + mechAtomicRabbit.Destination.Y);
                     }
 
-                    if(map.AreLocationsWithinRange(mech.Source, water, range: 2))
+                    if (map.AreLocationsWithinRange(mechAtomicRabbit.Position, mechCosmicWolf.Position, range: 1))
                     {
-                        Console.WriteLine("Mech within missile launch range of object");
+                        Console.WriteLine("Mech within attack range of enemy");
                     }
 
-                    if (map.AreLocationsWithinRange(mech.Source, water, range: 3))
+                    if(map.AreLocationsWithinRange(mechAtomicRabbit.Position, mechCosmicWolf.Position, range: 2))
                     {
-                        Console.WriteLine("Mech within radar scan range of object");
+                        Console.WriteLine("Mech within missile launch range of enemy");
                     }
 
-                    TimeSpan ts = map.GetTimeSpanBetweenLocations(mech.Source, water);
-                    Console.WriteLine("Duration between Mech and Water = " + ts.Hours + ":" + ts.Minutes + ":" + ts.Seconds);
+                    if (map.AreLocationsWithinRange(mechAtomicRabbit.Position, mechCosmicWolf.Position, range: 3))
+                    {
+                        Console.WriteLine("Mech within radar scan range of enemy");
+                    }
 
-                    Console.WriteLine("Duration between Mech Source and Mech Destination = " + mech.TimeToDestination.Hours + ":" + mech.TimeToDestination.Minutes + ":" + mech.TimeToDestination.Seconds);
-
-                    Console.WriteLine("Mech ETA to Destination = " + mech.EstimatedTimeOfArrival.ToString("HH:mm:ss"));
+                    //TimeSpan ts = map.GetTimeSpanBetweenLocations(mech.Position, water);
+                    //Console.WriteLine("Duration between Mech and Water = " + ts.Hours + ":" + ts.Minutes + ":" + ts.Seconds);
 
                     Console.Write(Time.Show() + "> ");
                     commandInput = Console.ReadLine();
@@ -88,19 +80,17 @@ namespace cyanspy
                             break;
 
                         case Command.Move:
-                            if (!mech.IsMoving)
+                            if (!mechAtomicRabbit.IsMoving)
                             {
                                 if (Int32.TryParse(value1, out int x) && Int32.TryParse(value2, out int y))
                                 {
                                     if (x >= 0 && x <= 9 && y >= 0 && y <= 9)
                                     {
-                                        Location newMechLocation = new Location(mech.Name, mech.Mnemonic);
+                                        Location newMechLocation = new Location(mechAtomicRabbit.Name, mechAtomicRabbit.Mnemonic);
                                         newMechLocation.X = x;
                                         newMechLocation.Y = y;
 
-                                        TimeSpan timeToDestination = map.GetTimeSpanBetweenLocations(mech.Source, newMechLocation);
-
-                                        mech.Move(newMechLocation, timeToDestination);
+                                        mechAtomicRabbit.Move(newMechLocation);
                                     }
                                 }
                             }
