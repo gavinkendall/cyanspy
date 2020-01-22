@@ -138,6 +138,12 @@ namespace cyanspy
             if (!ShowInfo) return;
 
             Console.WriteLine("Status: " + _status);
+            Console.WriteLine("Position: " + Position.X + " " + Position.Y);
+
+            if (Destination != null)
+            {
+                Console.WriteLine("Destination: " + Destination.X + " " + Destination.Y);
+            }
         }
 
         public void Move(Location destination)
@@ -177,6 +183,10 @@ namespace cyanspy
             {
                 IsMoving = false;
                 Position = Destination;
+                Destination = null;
+
+                _status = "Idle";
+
                 _movementTimer.Stop();
             }
         }
